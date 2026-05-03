@@ -1,0 +1,1772 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LHO Academy – Belajar Teks Laporan Hasil Observasi</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Firebase SDK v12.12.1 -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
+  import { getFirestore, collection, doc, setDoc, getDocs, getDoc, onSnapshot, serverTimestamp, query, orderBy, limit, updateDoc, increment } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+  import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-analytics.js";
+  window.firebaseModules = { initializeApp, getFirestore, collection, doc, setDoc, getDocs, getDoc, onSnapshot, serverTimestamp, query, orderBy, limit, updateDoc, increment, getAuth, signInAnonymously, onAuthStateChanged };
+  window.firebaseReady = true;
+  document.dispatchEvent(new Event('firebaseLoaded'));
+</script>
+
+<style>
+/* ============================
+   RESET & ROOT VARIABLES
+   ============================ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a14;
+  --bg2:#0f0f1e;
+  --bg3:#151528;
+  --card:#1a1a2e;
+  --card2:#1e1e35;
+  --border:#2a2a4a;
+  --border2:#3a3a5a;
+  --primary:#f5c518;
+  --primary2:#ffdd57;
+  --accent:#7c5cfc;
+  --accent2:#a78bfa;
+  --pink:#f472b6;
+  --green:#10b981;
+  --red:#ef4444;
+  --cyan:#06b6d4;
+  --orange:#f97316;
+  --text:#f0f0ff;
+  --text2:#a0a0c0;
+  --text3:#6060a0;
+  --radius:16px;
+  --radius-sm:10px;
+  --shadow:0 4px 24px rgba(0,0,0,.4);
+  --shadow-lg:0 8px 48px rgba(0,0,0,.6);
+  --glow:0 0 30px rgba(124,92,252,.3);
+}
+html{font-size:16px;scroll-behavior:smooth}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--accent);border-radius:3px}
+
+/* ============================
+   ANIMATED BACKGROUND
+   ============================ */
+.bg-mesh{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.bg-mesh::before{
+  content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 20%,rgba(124,92,252,.12) 0%,transparent 70%),
+    radial-gradient(ellipse 60% 40% at 80% 80%,rgba(245,197,24,.08) 0%,transparent 70%),
+    radial-gradient(ellipse 50% 60% at 50% 50%,rgba(6,182,212,.06) 0%,transparent 70%);
+}
+.star{position:absolute;border-radius:50%;background:#fff;animation:twinkle var(--d,3s) ease-in-out infinite}
+@keyframes twinkle{0%,100%{opacity:.1;transform:scale(1)}50%{opacity:.6;transform:scale(1.3)}}
+.orbit-ring{position:absolute;border-radius:50%;border:1px solid rgba(124,92,252,.1);animation:rotate var(--d,20s) linear infinite}
+@keyframes rotate{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+
+/* ============================
+   PAGES
+   ============================ */
+.page{display:none;position:relative;z-index:1;min-height:100vh}
+.page.active{display:block}
+
+/* ============================
+   TOPBAR
+   ============================ */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 24px;
+  background:rgba(10,10,20,.8);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:200;
+}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;box-shadow:0 0 16px rgba(245,197,24,.3)}
+.logo-text{font-family:'Syne',sans-serif;font-weight:800;font-size:1.15rem;background:linear-gradient(135deg,var(--primary),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.topbar-right{display:flex;align-items:center;gap:8px}
+.user-pill{
+  background:linear-gradient(135deg,rgba(124,92,252,.2),rgba(245,197,24,.1));
+  border:1px solid var(--border2);
+  color:var(--text);font-weight:600;font-size:.82rem;
+  padding:6px 14px;border-radius:20px;
+  max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.user-pill.admin-pill{background:linear-gradient(135deg,rgba(244,114,182,.2),rgba(124,92,252,.2));border-color:var(--pink)}
+.icon-btn{
+  width:36px;height:36px;border:1px solid var(--border);border-radius:10px;
+  background:rgba(255,255,255,.04);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1rem;color:var(--text2);transition:.2s;
+}
+.icon-btn:hover{background:rgba(124,92,252,.15);border-color:var(--accent);color:var(--text)}
+
+/* ============================
+   LOGIN PAGE
+   ============================ */
+.login-wrapper{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;
+}
+.login-card{
+  background:var(--card);border:1px solid var(--border);border-radius:24px;
+  padding:48px 40px;max-width:440px;width:100%;
+  box-shadow:var(--shadow-lg);
+  animation:slideUp .5s ease;
+  position:relative;overflow:hidden;
+}
+.login-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--accent),var(--primary),var(--pink));
+}
+.login-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(124,92,252,.15);border:1px solid rgba(124,92,252,.3);
+  border-radius:20px;padding:4px 14px;font-size:.75rem;font-weight:600;
+  color:var(--accent2);margin-bottom:20px;
+}
+.login-card h1{font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;margin-bottom:6px;line-height:1.2}
+.login-card h1 span{background:linear-gradient(135deg,var(--primary),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.login-sub{color:var(--text2);font-size:.9rem;margin-bottom:28px;line-height:1.6}
+.field-wrap{margin-bottom:18px}
+.field-label{display:block;font-size:.8rem;font-weight:700;color:var(--text2);margin-bottom:8px;letter-spacing:.5px;text-transform:uppercase}
+.field-input{
+  width:100%;padding:13px 16px;
+  background:rgba(255,255,255,.05);
+  border:1.5px solid var(--border);border-radius:12px;
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:.95rem;
+  color:var(--text);outline:none;transition:.2s;
+}
+.field-input::placeholder{color:var(--text3)}
+.field-input:focus{border-color:var(--accent);background:rgba(124,92,252,.08);box-shadow:0 0 0 3px rgba(124,92,252,.12)}
+.err-msg{color:var(--red);font-size:.82rem;margin-bottom:14px;display:none;padding:10px 14px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:8px}
+.err-msg.show{display:block}
+.btn-login{
+  width:100%;padding:14px;border:none;border-radius:14px;
+  background:linear-gradient(135deg,var(--accent),var(--primary));
+  color:#0a0a14;font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;
+  cursor:pointer;transition:.25s;letter-spacing:.5px;position:relative;overflow:hidden;
+}
+.btn-login::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--primary),var(--accent));opacity:0;transition:.3s}
+.btn-login:hover::before{opacity:1}
+.btn-login:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(124,92,252,.4)}
+.btn-login:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-login span{position:relative;z-index:1}
+.spinner{display:inline-block;width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle;margin-left:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.login-secret{margin-top:20px;text-align:center}
+.secret-dot{cursor:pointer;opacity:.2;font-size:.6rem;user-select:none;transition:.2s}
+.secret-dot:hover{opacity:.5}
+
+/* ============================
+   HOME PAGE
+   ============================ */
+.hero{
+  padding:60px 24px 48px;
+  background:linear-gradient(180deg,rgba(124,92,252,.1) 0%,transparent 100%);
+  text-align:center;position:relative;overflow:hidden;
+}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(245,197,24,.1);border:1px solid rgba(245,197,24,.25);
+  border-radius:20px;padding:5px 16px;font-size:.78rem;font-weight:700;
+  color:var(--primary);margin-bottom:20px;letter-spacing:.5px;
+}
+.hero h1{font-family:'Syne',sans-serif;font-size:clamp(1.8rem,5vw,3rem);font-weight:800;line-height:1.15;margin-bottom:14px}
+.hero h1 .grad{background:linear-gradient(135deg,var(--primary),var(--accent2),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-sub{color:var(--text2);max-width:480px;margin:0 auto 32px;font-size:.95rem;line-height:1.7}
+.hero-stats{display:flex;justify-content:center;gap:24px;flex-wrap:wrap;margin-bottom:0}
+.hero-stat{text-align:center}
+.hero-stat-num{font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;color:var(--primary)}
+.hero-stat-lbl{font-size:.75rem;color:var(--text3);font-weight:600;letter-spacing:.5px;text-transform:uppercase}
+
+.nav-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;padding:24px;max-width:960px;margin:0 auto}
+.nav-card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:24px 20px;cursor:pointer;transition:.25s;position:relative;overflow:hidden;
+}
+.nav-card::before{content:'';position:absolute;inset:0;opacity:0;transition:.3s}
+.nc-materi::before{background:linear-gradient(135deg,rgba(245,197,24,.08),rgba(249,115,22,.05))}
+.nc-quiz::before{background:linear-gradient(135deg,rgba(16,185,129,.08),rgba(6,182,212,.05))}
+.nc-diskusi::before{background:linear-gradient(135deg,rgba(124,92,252,.08),rgba(244,114,182,.05))}
+.nc-ranking::before{background:linear-gradient(135deg,rgba(245,197,24,.08),rgba(244,114,182,.05))}
+.nav-card:hover{transform:translateY(-6px);border-color:var(--border2);box-shadow:var(--shadow-lg)}
+.nav-card:hover::before{opacity:1}
+.nc-icon{
+  width:52px;height:52px;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.5rem;margin-bottom:16px;position:relative;z-index:1;
+}
+.nc-materi .nc-icon{background:linear-gradient(135deg,rgba(245,197,24,.2),rgba(249,115,22,.15));border:1px solid rgba(245,197,24,.2)}
+.nc-quiz .nc-icon{background:linear-gradient(135deg,rgba(16,185,129,.2),rgba(6,182,212,.15));border:1px solid rgba(16,185,129,.2)}
+.nc-diskusi .nc-icon{background:linear-gradient(135deg,rgba(124,92,252,.2),rgba(244,114,182,.15));border:1px solid rgba(124,92,252,.2)}
+.nc-ranking .nc-icon{background:linear-gradient(135deg,rgba(245,197,24,.2),rgba(244,114,182,.15));border:1px solid rgba(244,114,182,.2)}
+.nav-card h3{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;margin-bottom:6px;position:relative;z-index:1}
+.nav-card p{font-size:.82rem;color:var(--text2);line-height:1.5;position:relative;z-index:1}
+.nc-tag{
+  display:inline-block;margin-top:12px;
+  background:rgba(255,255,255,.06);border:1px solid var(--border);
+  border-radius:20px;padding:3px 10px;font-size:.72rem;font-weight:700;
+  color:var(--text3);position:relative;z-index:1;
+}
+.nc-materi .nc-tag{color:var(--primary);border-color:rgba(245,197,24,.2)}
+.nc-quiz .nc-tag{color:var(--green);border-color:rgba(16,185,129,.2)}
+.nc-diskusi .nc-tag{color:var(--accent2);border-color:rgba(124,92,252,.2)}
+.nc-ranking .nc-tag{color:var(--pink);border-color:rgba(244,114,182,.2)}
+
+/* ============================
+   SECTION HEADER
+   ============================ */
+.section-header{
+  display:flex;align-items:center;gap:12px;
+  padding:24px 24px 0;max-width:800px;margin:0 auto;
+}
+.back-btn{
+  width:38px;height:38px;border:1px solid var(--border);border-radius:10px;
+  background:rgba(255,255,255,.04);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.9rem;color:var(--text2);transition:.2s;flex-shrink:0;
+}
+.back-btn:hover{background:rgba(124,92,252,.15);border-color:var(--accent);color:var(--text)}
+.section-title{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem}
+
+/* ============================
+   MATERI PAGE
+   ============================ */
+.materi-wrap{max-width:800px;padding:20px 24px;margin:0 auto}
+.materi-intro{
+  background:linear-gradient(135deg,rgba(245,197,24,.1),rgba(124,92,252,.1));
+  border:1px solid rgba(245,197,24,.15);border-radius:var(--radius);
+  padding:24px;margin-bottom:24px;
+}
+.materi-intro h2{font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:800;margin-bottom:6px;color:var(--primary)}
+.materi-intro p{font-size:.85rem;color:var(--text2);line-height:1.6}
+.materi-grid{display:flex;flex-direction:column;gap:12px}
+.materi-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:.2s}
+.materi-card:hover{border-color:var(--border2)}
+.materi-head{
+  display:flex;align-items:center;gap:14px;padding:18px 20px;
+  cursor:pointer;user-select:none;transition:.2s;
+}
+.materi-head:hover{background:rgba(255,255,255,.03)}
+.materi-num{
+  width:38px;height:38px;border-radius:10px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;font-weight:800;font-size:.9rem;color:#0a0a14;
+}
+.materi-ttl{font-family:'Syne',sans-serif;font-weight:700;font-size:.95rem;flex:1;color:var(--text)}
+.materi-chev{color:var(--text3);transition:transform .3s;font-size:.9rem}
+.materi-card.open .materi-chev{transform:rotate(90deg)}
+.materi-body{display:none;padding:0 20px 20px;font-size:.88rem;line-height:1.75;color:var(--text2)}
+.materi-card.open .materi-body{display:block}
+.materi-body h4{font-family:'Syne',sans-serif;color:var(--text);font-size:.9rem;font-weight:700;margin:14px 0 8px}
+.materi-body ul{padding-left:18px}
+.materi-body ul li{margin-bottom:5px}
+.materi-body strong{color:var(--text)}
+.highlight-box{
+  background:rgba(245,197,24,.07);border-left:3px solid var(--primary);
+  border-radius:0 10px 10px 0;padding:12px 16px;margin:12px 0;
+  font-size:.85rem;line-height:1.7;color:var(--text);
+}
+.info-chip{
+  display:inline-flex;align-items:center;gap:4px;
+  background:rgba(124,92,252,.15);border:1px solid rgba(124,92,252,.2);
+  border-radius:20px;padding:3px 10px;font-size:.75rem;font-weight:700;
+  color:var(--accent2);margin:3px;
+}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.col-box{border-radius:10px;padding:14px}
+.col-yes{background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.15)}
+.col-no{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.15)}
+.col-box .col-head{font-weight:800;font-size:.85rem;margin-bottom:8px}
+.col-yes .col-head{color:var(--green)}
+.col-no .col-head{color:var(--red)}
+.col-box ul{padding-left:16px;font-size:.82rem}
+.col-box li{margin-bottom:4px}
+.step-item{display:flex;gap:12px;margin-bottom:14px;align-items:flex-start}
+.step-num{
+  width:28px;height:28px;border-radius:8px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:.8rem;color:#fff;
+}
+.step-content strong{display:block;font-size:.88rem;color:var(--text);margin-bottom:2px}
+.step-content small{color:var(--text3);font-size:.8rem}
+.compare-table{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:10px}
+.compare-table th{padding:10px 12px;text-align:left;background:rgba(245,197,24,.1);color:var(--primary);font-family:'Syne',sans-serif;font-weight:700}
+.compare-table td{padding:9px 12px;border-bottom:1px solid var(--border);color:var(--text2)}
+.compare-table tr:last-child td{border-bottom:none}
+.materi-progress{
+  text-align:center;padding:16px;color:var(--text2);font-size:.85rem;margin-top:4px;
+}
+.prog-bar-wrap{height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:8px}
+.prog-bar{height:100%;background:linear-gradient(90deg,var(--accent),var(--primary));border-radius:3px;transition:width .4s ease}
+
+/* ============================
+   QUIZ PAGE
+   ============================ */
+.quiz-wrap{max-width:680px;padding:20px 24px;margin:0 auto}
+.quiz-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.q-timer{
+  display:flex;align-items:center;gap:6px;
+  background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);
+  border-radius:20px;padding:5px 14px;font-size:.82rem;font-weight:700;color:var(--red);
+}
+.q-timer.warning{animation:timerPulse 1s ease-in-out infinite}
+@keyframes timerPulse{0%,100%{opacity:1}50%{opacity:.5}}
+.q-score-display{
+  display:flex;align-items:center;gap:6px;
+  background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);
+  border-radius:20px;padding:5px 14px;font-size:.82rem;font-weight:700;color:var(--green);
+}
+.q-progress-bar-wrap{height:8px;background:var(--border);border-radius:4px;overflow:hidden;margin-bottom:6px}
+.q-progress-bar{height:100%;background:linear-gradient(90deg,var(--accent),var(--primary));border-radius:4px;transition:width .4s ease}
+.q-progress-label{font-size:.78rem;color:var(--text3);text-align:right;margin-bottom:18px}
+.quiz-card{
+  background:var(--card);border:1px solid var(--border);border-radius:20px;
+  padding:28px 24px;animation:slideUp .3s ease;
+}
+.q-num-tag{font-size:.75rem;font-weight:700;color:var(--accent2);letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px}
+.q-text{font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:700;color:var(--text);line-height:1.55;margin-bottom:22px}
+.q-options{display:flex;flex-direction:column;gap:10px}
+.q-opt{
+  display:flex;align-items:center;gap:12px;
+  padding:14px 16px;border:1.5px solid var(--border);border-radius:12px;
+  cursor:pointer;transition:.2s;background:rgba(255,255,255,.02);
+  font-size:.9rem;color:var(--text2);
+}
+.q-opt:hover:not(.locked){border-color:var(--accent);background:rgba(124,92,252,.08);color:var(--text);transform:translateX(4px)}
+.q-opt.correct{border-color:var(--green);background:rgba(16,185,129,.1);color:var(--green);font-weight:700}
+.q-opt.wrong{border-color:var(--red);background:rgba(239,68,68,.1);color:var(--red);font-weight:700}
+.q-opt.locked{cursor:not-allowed}
+.q-opt-letter{
+  width:32px;height:32px;border-radius:8px;background:var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:.82rem;flex-shrink:0;transition:.2s;color:var(--text2);
+}
+.q-opt.correct .q-opt-letter{background:var(--green);color:#fff}
+.q-opt.wrong .q-opt-letter{background:var(--red);color:#fff}
+.q-feedback{
+  margin-top:14px;padding:12px 16px;border-radius:10px;
+  font-size:.85rem;line-height:1.6;display:none;
+}
+.q-feedback.show{display:block}
+.q-feedback.fb-correct{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);color:var(--green)}
+.q-feedback.fb-wrong{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#fca5a5}
+.q-nav{display:flex;justify-content:space-between;align-items:center;margin-top:20px}
+.btn-next{
+  padding:11px 28px;border:none;border-radius:22px;
+  background:linear-gradient(135deg,var(--accent),var(--primary));
+  color:#0a0a14;font-family:'Syne',sans-serif;font-weight:800;font-size:.9rem;
+  cursor:pointer;transition:.2s;
+}
+.btn-next:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(124,92,252,.4)}
+.btn-next:disabled{background:var(--border);color:var(--text3);cursor:not-allowed;transform:none;box-shadow:none}
+
+/* Quiz Result */
+.result-wrap{text-align:center;padding:32px 20px}
+.result-ring{
+  width:160px;height:160px;border-radius:50%;
+  background:conic-gradient(var(--primary) calc(var(--pct)*1%),var(--border) 0);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 24px;position:relative;
+}
+.result-ring::before{
+  content:'';position:absolute;width:130px;height:130px;
+  border-radius:50%;background:var(--card);
+}
+.result-ring-inner{position:relative;z-index:1;text-align:center}
+.result-score-num{font-family:'Syne',sans-serif;font-size:2.8rem;font-weight:800;color:var(--primary);line-height:1}
+.result-score-lbl{font-size:.7rem;color:var(--text3);font-weight:700;letter-spacing:.5px}
+.result-title{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;margin-bottom:8px}
+.result-detail{color:var(--text2);font-size:.88rem;margin-bottom:8px}
+.result-time{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(6,182,212,.1);border:1px solid rgba(6,182,212,.2);
+  border-radius:20px;padding:5px 16px;font-size:.82rem;font-weight:700;
+  color:var(--cyan);margin-bottom:24px;
+}
+.result-actions{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
+.btn-action{
+  padding:12px 24px;border:none;border-radius:22px;
+  font-family:'Syne',sans-serif;font-size:.88rem;font-weight:800;
+  cursor:pointer;transition:.2s;
+}
+.btn-action-primary{background:linear-gradient(135deg,var(--accent),var(--primary));color:#0a0a14}
+.btn-action-secondary{background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--text)}
+.btn-action:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+
+/* ============================
+   AI CHAT
+   ============================ */
+.chat-wrap{max-width:800px;padding:20px 24px;margin:0 auto}
+.chat-info-bar{
+  display:flex;justify-content:space-between;align-items:center;
+  background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:12px 18px;margin-bottom:16px;
+}
+.ai-status{display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--text2)}
+.ai-dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse-dot 2s infinite}
+@keyframes pulse-dot{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,.4)}70%{box-shadow:0 0 0 6px rgba(16,185,129,0)}}
+.ai-badge{
+  background:rgba(124,92,252,.15);border:1px solid rgba(124,92,252,.2);
+  color:var(--accent2);border-radius:20px;padding:3px 10px;font-size:.75rem;font-weight:700;
+}
+.chat-window{
+  background:var(--card);border:1px solid var(--border);border-radius:16px;
+  padding:16px;min-height:380px;max-height:480px;overflow-y:auto;
+  margin-bottom:14px;display:flex;flex-direction:column;gap:14px;
+}
+.chat-empty{flex:1;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--text3)}
+.chat-empty-icon{font-size:3rem;margin-bottom:12px}
+.chat-empty p{font-size:.9rem;margin-bottom:6px}
+.chat-empty small{font-size:.8rem}
+.bubble{max-width:78%;padding:14px 18px;border-radius:18px;font-size:.88rem;line-height:1.65;word-break:break-word}
+.bubble-meta{font-size:.75rem;opacity:.7;margin-bottom:6px;display:block;font-weight:600}
+.bubble-user{
+  align-self:flex-end;
+  background:linear-gradient(135deg,var(--accent),rgba(124,92,252,.7));
+  color:#fff;border-radius:18px 18px 4px 18px;margin-left:22%;
+}
+.bubble-ai{
+  align-self:flex-start;
+  background:var(--card2);border:1px solid var(--border);
+  color:var(--text);border-radius:18px 18px 18px 4px;margin-right:22%;
+}
+.bubble-thinking{
+  align-self:flex-start;
+  background:rgba(6,182,212,.08);border:1px solid rgba(6,182,212,.15);
+  color:var(--text3);font-style:italic;border-radius:18px 18px 18px 4px;
+  animation:thinkPulse 1.5s ease-in-out infinite;
+}
+@keyframes thinkPulse{0%,100%{opacity:.6}50%{opacity:1}}
+.chat-input-wrap{
+  background:var(--card);border:1.5px solid var(--border);border-radius:14px;
+  overflow:hidden;transition:.2s;
+}
+.chat-input-wrap:focus-within{border-color:var(--accent)}
+.chat-textarea{
+  width:100%;padding:14px 18px;border:none;outline:none;
+  background:transparent;font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:.92rem;color:var(--text);resize:none;min-height:56px;max-height:120px;line-height:1.5;
+}
+.chat-textarea::placeholder{color:var(--text3)}
+.chat-footer{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:8px 16px;border-top:1px solid var(--border);
+}
+.chat-count{font-size:.78rem;color:var(--text3)}
+.btn-send{
+  padding:8px 20px;border:none;border-radius:20px;
+  background:linear-gradient(135deg,var(--accent),var(--primary));
+  color:#0a0a14;font-family:'Syne',sans-serif;font-size:.85rem;font-weight:800;
+  cursor:pointer;transition:.2s;
+}
+.btn-send:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(124,92,252,.4)}
+.btn-send:disabled{background:var(--border);color:var(--text3);cursor:not-allowed;transform:none;box-shadow:none}
+.chat-hint{
+  background:rgba(6,182,212,.06);border:1px solid rgba(6,182,212,.12);
+  border-radius:12px;padding:14px 18px;font-size:.82rem;color:var(--text3);line-height:1.6;
+}
+.chat-hint strong{color:var(--cyan)}
+
+/* ============================
+   RANKING PAGE
+   ============================ */
+.ranking-wrap{max-width:800px;padding:20px 24px;margin:0 auto}
+.ranking-hero{
+  background:linear-gradient(135deg,rgba(245,197,24,.12),rgba(244,114,182,.08));
+  border:1px solid rgba(245,197,24,.15);border-radius:var(--radius);
+  padding:28px;margin-bottom:24px;text-align:center;
+}
+.ranking-hero h2{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;margin-bottom:6px}
+.ranking-hero p{color:var(--text2);font-size:.85rem}
+.podium{display:flex;align-items:flex-end;justify-content:center;gap:12px;margin-bottom:28px;padding:0 10px}
+.podium-item{flex:1;max-width:160px;text-align:center;cursor:default}
+.podium-name{font-size:.78rem;font-weight:700;color:var(--text2);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.podium-score-badge{
+  font-family:'Syne',sans-serif;font-size:.85rem;font-weight:800;
+  background:rgba(255,255,255,.06);border:1px solid var(--border);
+  border-radius:10px;padding:4px 10px;display:inline-block;margin-bottom:6px;color:var(--text);
+}
+.podium-block{border-radius:12px 12px 4px 4px;display:flex;align-items:center;justify-content:center}
+.podium-rank{font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800}
+.pos-1 .podium-block{height:120px;background:linear-gradient(180deg,rgba(245,197,24,.3),rgba(245,197,24,.1));border:1px solid rgba(245,197,24,.3)}
+.pos-1 .podium-rank{color:var(--primary)}
+.pos-2 .podium-block{height:90px;background:linear-gradient(180deg,rgba(167,139,250,.3),rgba(167,139,250,.1));border:1px solid rgba(167,139,250,.3)}
+.pos-2 .podium-rank{color:var(--accent2)}
+.pos-3 .podium-block{height:70px;background:linear-gradient(180deg,rgba(249,115,22,.3),rgba(249,115,22,.1));border:1px solid rgba(249,115,22,.3)}
+.pos-3 .podium-rank{color:var(--orange)}
+.podium-medal{font-size:1.2rem;display:block;margin-top:4px}
+.rank-list{display:flex;flex-direction:column;gap:10px}
+.rank-item{
+  display:flex;align-items:center;gap:14px;
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius-sm);padding:14px 18px;
+  transition:.2s;animation:slideUp .3s ease;
+}
+.rank-item:hover{border-color:var(--border2);transform:translateX(4px)}
+.rank-item.rank-me{border-color:var(--accent);background:rgba(124,92,252,.08)}
+.rank-pos{
+  width:36px;height:36px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;font-weight:800;font-size:.9rem;flex-shrink:0;
+}
+.rp-1{background:linear-gradient(135deg,var(--primary),#e6b800);color:#0a0a14}
+.rp-2{background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff}
+.rp-3{background:linear-gradient(135deg,var(--orange),#e65c00);color:#fff}
+.rp-other{background:var(--bg3);border:1px solid var(--border);color:var(--text2)}
+.rank-info{flex:1;min-width:0}
+.rank-name{font-weight:700;font-size:.92rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rank-sub{font-size:.75rem;color:var(--text3);margin-top:2px}
+.rank-right{text-align:right;flex-shrink:0}
+.rank-score-big{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;color:var(--primary)}
+.rank-time{font-size:.75rem;color:var(--cyan);margin-top:2px}
+.rank-empty{text-align:center;padding:48px 20px;color:var(--text3)}
+.rank-empty-icon{font-size:3rem;margin-bottom:12px}
+.rank-refresh{
+  display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;
+}
+.rank-refresh-btn{
+  display:flex;align-items:center;gap:6px;
+  background:rgba(124,92,252,.1);border:1px solid rgba(124,92,252,.2);
+  border-radius:20px;padding:6px 14px;
+  font-size:.78rem;font-weight:700;color:var(--accent2);cursor:pointer;transition:.2s;
+}
+.rank-refresh-btn:hover{background:rgba(124,92,252,.2)}
+.rank-section-title{font-family:'Syne',sans-serif;font-size:.9rem;font-weight:800;color:var(--text2);letter-spacing:.5px;text-transform:uppercase}
+
+/* ============================
+   ADMIN PAGE
+   ============================ */
+.admin-wrap{padding:24px;max-width:960px;margin:0 auto}
+.admin-banner{
+  background:linear-gradient(135deg,rgba(244,114,182,.15),rgba(124,92,252,.15));
+  border:1px solid rgba(244,114,182,.2);border-radius:var(--radius);
+  padding:28px;text-align:center;margin-bottom:24px;
+}
+.admin-banner h1{font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;margin-bottom:6px}
+.admin-banner p{color:var(--text2);font-size:.88rem}
+.admin-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px}
+.stat-box{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:20px;text-align:center;transition:.2s;
+}
+.stat-box:hover{border-color:var(--border2);transform:translateY(-2px)}
+.stat-num{font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:var(--primary)}
+.stat-lbl{font-size:.8rem;color:var(--text3);font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-top:4px}
+.online-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);margin-right:4px;animation:pulse-dot 2s infinite}
+.stu-list{display:flex;flex-direction:column;gap:10px}
+.stu-item{
+  display:flex;align-items:center;gap:14px;
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius-sm);padding:14px 18px;transition:.2s;
+}
+.stu-item:hover{transform:translateX(4px);border-color:var(--border2)}
+.stu-avatar{
+  width:44px;height:44px;border-radius:12px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--accent),var(--primary));
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;color:#0a0a14;
+}
+.stu-info{flex:1}
+.stu-name{font-weight:700;color:var(--text);font-size:.92rem}
+.stu-meta{font-size:.78rem;color:var(--text3);margin-top:2px}
+.stu-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700;margin-top:4px}
+.badge-online{background:rgba(16,185,129,.15);color:var(--green);border:1px solid rgba(16,185,129,.2)}
+.badge-offline{background:rgba(96,96,160,.1);color:var(--text3);border:1px solid var(--border)}
+.danger-btn{
+  background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);
+  color:var(--red);border-radius:10px;padding:12px 24px;
+  font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;
+  transition:.2s;display:block;margin:24px auto 0;font-size:.9rem;
+}
+.danger-btn:hover{background:rgba(239,68,68,.2);transform:translateY(-1px)}
+
+/* ============================
+   ADMIN MODAL
+   ============================ */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:999;align-items:center;justify-content:center;backdrop-filter:blur(8px)}
+.modal-overlay.show{display:flex}
+.modal-box{
+  background:var(--card);border:1px solid var(--border);border-radius:20px;
+  padding:36px;max-width:380px;width:90%;animation:slideUp .3s ease;
+  position:relative;overflow:hidden;
+}
+.modal-box::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--pink),var(--accent))}
+.modal-icon{text-align:center;font-size:2.5rem;margin-bottom:12px}
+.modal-box h3{font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;text-align:center;margin-bottom:6px}
+.modal-box p{text-align:center;color:var(--text2);font-size:.85rem;margin-bottom:20px}
+.modal-btns{display:flex;gap:10px;margin-top:16px}
+.btn-modal-cancel{
+  flex:1;padding:11px;border:1px solid var(--border);border-radius:10px;
+  background:none;cursor:pointer;font-weight:700;color:var(--text2);
+  font-family:'Plus Jakarta Sans',sans-serif;transition:.2s;
+}
+.btn-modal-cancel:hover{background:rgba(255,255,255,.05)}
+.btn-modal-ok{
+  flex:2;padding:11px;border:none;border-radius:10px;
+  background:linear-gradient(135deg,var(--pink),var(--accent));
+  color:#fff;font-family:'Syne',sans-serif;font-weight:800;
+  cursor:pointer;transition:.2s;
+}
+.btn-modal-ok:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(244,114,182,.3)}
+
+/* ============================
+   NOTIFICATIONS
+   ============================ */
+.toast{
+  position:fixed;bottom:24px;right:24px;z-index:9999;
+  background:var(--card2);border:1px solid var(--border);border-radius:12px;
+  padding:14px 20px;font-size:.85rem;font-weight:600;color:var(--text);
+  box-shadow:var(--shadow-lg);transform:translateY(100px);opacity:0;
+  transition:.3s;pointer-events:none;
+}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.toast-success{border-color:rgba(16,185,129,.3);color:var(--green)}
+.toast.toast-error{border-color:rgba(239,68,68,.3);color:var(--red)}
+
+@keyframes slideUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:520px){
+  .hero h1{font-size:1.6rem}
+  .nav-grid{grid-template-columns:1fr 1fr}
+  .podium{gap:6px}
+  .bubble{max-width:92%;margin-left:2%!important;margin-right:2%!important}
+  .two-col{grid-template-columns:1fr}
+  .login-card{padding:32px 24px}
+}
+</style>
+</head>
+<body>
+
+<!-- BACKGROUND -->
+<div class="bg-mesh" id="bg-mesh"></div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- ===== ADMIN MODAL ===== -->
+<div class="modal-overlay" id="admin-modal">
+  <div class="modal-box">
+    <div class="modal-icon">🔐</div>
+    <h3>Admin Login</h3>
+    <p>Masukkan kredensial admin untuk melanjutkan</p>
+    <div class="field-wrap">
+      <label class="field-label">Username</label>
+      <input class="field-input" id="admin-user" type="text" placeholder="Username" autocomplete="off">
+    </div>
+    <div class="field-wrap">
+      <label class="field-label">Password</label>
+      <input class="field-input" id="admin-pass" type="password" placeholder="Password"
+        onkeydown="if(event.key==='Enter')doAdminLogin()">
+    </div>
+    <p class="err-msg" id="admin-err">Username atau password salah!</p>
+    <div class="modal-btns">
+      <button class="btn-modal-cancel" onclick="closeAdminModal()">Batal</button>
+      <button class="btn-modal-ok" onclick="doAdminLogin()">🚀 Masuk</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== LOGIN PAGE ===== -->
+<div id="pg-login" class="page active">
+  <div class="login-wrapper">
+    <div class="login-card">
+      <div class="login-badge">✨ Platform Belajar Interaktif</div>
+      <h1>Selamat Datang di<br><span>LHO Academy</span></h1>
+      <p class="login-sub">Platform belajar Teks Laporan Hasil Observasi yang seru, lengkap, dan interaktif. Masukkan namamu untuk mulai! 🚀</p>
+      <div class="field-wrap">
+        <label class="field-label">👤 Nama Peserta</label>
+        <input class="field-input" id="inp-name" type="text"
+          placeholder="Ketik nama kamu..."
+          maxlength="40" autocomplete="off"
+          onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <p class="err-msg" id="login-err">Nama tidak boleh kosong!</p>
+      <button class="btn-login" id="btn-login" onclick="doLogin()">
+        <span id="btn-login-text">Mulai Belajar 🚀</span>
+        <span id="btn-login-spin" class="spinner" style="display:none"></span>
+      </button>
+      <div class="login-secret">
+        <span class="secret-dot" onclick="openAdminModal()">● ● ●</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== HOME PAGE ===== -->
+<div id="pg-home" class="page">
+  <div class="topbar">
+    <div class="logo">
+      <div class="logo-icon">📖</div>
+      <span class="logo-text">LHO Academy</span>
+    </div>
+    <div class="topbar-right">
+      <div class="user-pill" id="user-pill-home">👤 ...</div>
+      <button class="icon-btn" title="Logout" onclick="doLogout()">⇄</button>
+    </div>
+  </div>
+  <div class="hero">
+    <div class="hero-badge">📚 Kelas Bahasa Indonesia SMP</div>
+    <h1>Halo, <span class="grad" id="hero-name">Siswa</span>!<br>Ayo Belajar <span class="grad">Teks LHO</span></h1>
+    <p class="hero-sub">Kuasai Teks Laporan Hasil Observasi dengan materi lengkap, kuis seru, dan diskusi dengan Guru AI. Raih peringkat tertinggi! 🏆</p>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="hero-stat-num">10+</div><div class="hero-stat-lbl">Topik Materi</div></div>
+      <div class="hero-stat"><div class="hero-stat-num">20</div><div class="hero-stat-lbl">Soal Kuis</div></div>
+      <div class="hero-stat"><div class="hero-stat-num">AI</div><div class="hero-stat-lbl">Guru Pintar</div></div>
+      <div class="hero-stat"><div class="hero-stat-num">Top 5</div><div class="hero-stat-lbl">Papan Ranking</div></div>
+    </div>
+  </div>
+  <div class="nav-grid">
+    <div class="nav-card nc-materi" onclick="goTo('materi')">
+      <div class="nc-icon">📚</div>
+      <h3>Materi Lengkap</h3>
+      <p>Pengertian, struktur, ciri-ciri, kaidah bahasa, dan contoh teks LHO.</p>
+      <span class="nc-tag">10 Topik</span>
+    </div>
+    <div class="nav-card nc-quiz" onclick="goTo('quiz')">
+      <div class="nc-icon">⚡</div>
+      <h3>Kuis Interaktif</h3>
+      <p>20 soal pilihan ganda dengan timer dan penjelasan jawaban.</p>
+      <span class="nc-tag">20 Soal</span>
+    </div>
+    <div class="nav-card nc-diskusi" onclick="goTo('diskusi')">
+      <div class="nc-icon">🤖</div>
+      <h3>Guru AI</h3>
+      <p>Tanya apa saja tentang LHO, jawaban instan dari Guru AI!</p>
+      <span class="nc-tag">AI Powered</span>
+    </div>
+    <div class="nav-card nc-ranking" onclick="goTo('ranking')">
+      <div class="nc-icon">🏆</div>
+      <h3>Papan Ranking</h3>
+      <p>Lihat peringkat Top 5 siswa terbaik berdasarkan skor dan kecepatan!</p>
+      <span class="nc-tag">Live</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MATERI PAGE ===== -->
+<div id="pg-materi" class="page">
+  <div class="topbar">
+    <div class="logo"><div class="logo-icon">📚</div><span class="logo-text">Materi LHO</span></div>
+    <div class="topbar-right">
+      <div class="user-pill" id="user-pill-materi">👤</div>
+      <button class="icon-btn" onclick="goTo('home')">🏠</button>
+    </div>
+  </div>
+  <div class="materi-wrap">
+    <div class="materi-intro">
+      <h2>📚 Materi Teks Laporan Hasil Observasi</h2>
+      <p>Klik setiap topik untuk membaca. Pelajari semua topik sebelum mengerjakan kuis!</p>
+    </div>
+    <div class="prog-bar-wrap"><div class="prog-bar" id="materi-prog-bar" style="width:0%"></div></div>
+    <div class="materi-progress" id="materi-prog-text">📚 Klik topik untuk mulai belajar!</div>
+    <div class="materi-grid" id="materi-grid"></div>
+  </div>
+</div>
+
+<!-- ===== QUIZ PAGE ===== -->
+<div id="pg-quiz" class="page">
+  <div class="topbar">
+    <div class="logo"><div class="logo-icon">⚡</div><span class="logo-text">Kuis LHO</span></div>
+    <div class="topbar-right">
+      <div class="user-pill" id="user-pill-quiz">👤</div>
+      <button class="icon-btn" onclick="goTo('home')">🏠</button>
+    </div>
+  </div>
+  <div class="quiz-wrap">
+    <div id="quiz-game">
+      <div class="quiz-meta">
+        <div class="q-timer" id="q-timer">⏱ 00:00</div>
+        <div class="q-score-display" id="q-score-disp">✅ Skor: 0</div>
+      </div>
+      <div class="q-progress-bar-wrap"><div class="q-progress-bar" id="q-bar" style="width:0%"></div></div>
+      <div class="q-progress-label" id="q-label">Soal 1 dari 20</div>
+      <div class="quiz-card" id="quiz-card"></div>
+    </div>
+    <div id="quiz-result" style="display:none"></div>
+  </div>
+</div>
+
+<!-- ===== DISKUSI PAGE ===== -->
+<div id="pg-diskusi" class="page">
+  <div class="topbar">
+    <div class="logo"><div class="logo-icon">🤖</div><span class="logo-text">Guru AI LHO</span></div>
+    <div class="topbar-right">
+      <div class="user-pill" id="user-pill-diskusi">👤</div>
+      <button class="icon-btn" onclick="goTo('home')">🏠</button>
+    </div>
+  </div>
+  <div class="chat-wrap">
+    <div class="chat-info-bar">
+      <div class="ai-status">
+        <span class="ai-dot"></span>
+        <span id="chat-user-info">Diskusi dengan Guru AI</span>
+      </div>
+      <span class="ai-badge">🤖 Gemini AI</span>
+    </div>
+    <div class="chat-window" id="chat-window">
+      <div class="chat-empty">
+        <div>
+          <div class="chat-empty-icon">🤖</div>
+          <p>Guru AI siap membantu belajar LHO!</p>
+          <small>Ketik pertanyaan di bawah untuk memulai 👇</small>
+        </div>
+      </div>
+    </div>
+    <div class="chat-input-wrap">
+      <textarea id="chat-inp" class="chat-textarea"
+        placeholder="Tulis pertanyaan tentang LHO... (Enter kirim, Shift+Enter baris baru)"
+        maxlength="800" rows="2"
+        oninput="onChatInput()"
+        onkeydown="onChatKey(event)"></textarea>
+      <div class="chat-footer">
+        <span class="chat-count" id="chat-count">0 / 800</span>
+        <button class="btn-send" id="btn-send" onclick="sendChat()">Kirim 🚀</button>
+      </div>
+    </div>
+    <div class="chat-hint">
+      💡 <strong>Coba tanya:</strong> "Apa itu LHO?", "Jelaskan struktur teks LHO", "Contoh kalimat fakta dan opini", "Cara menulis LHO yang baik?"
+    </div>
+  </div>
+</div>
+
+<!-- ===== RANKING PAGE ===== -->
+<div id="pg-ranking" class="page">
+  <div class="topbar">
+    <div class="logo"><div class="logo-icon">🏆</div><span class="logo-text">Papan Ranking</span></div>
+    <div class="topbar-right">
+      <div class="user-pill" id="user-pill-ranking">👤</div>
+      <button class="icon-btn" onclick="goTo('home')">🏠</button>
+    </div>
+  </div>
+  <div class="ranking-wrap">
+    <div class="ranking-hero">
+      <h2>🏆 Top 5 Siswa Terbaik</h2>
+      <p>Ranking berdasarkan skor tertinggi & waktu pengerjaan tercepat</p>
+    </div>
+    <div id="podium-wrap"></div>
+    <div class="rank-refresh">
+      <span class="rank-section-title">📋 Semua Peringkat</span>
+      <button class="rank-refresh-btn" onclick="loadRanking()">🔄 Refresh</button>
+    </div>
+    <div id="rank-list"></div>
+  </div>
+</div>
+
+<!-- ===== ADMIN PAGE ===== -->
+<div id="pg-admin" class="page">
+  <div class="topbar">
+    <div class="logo"><div class="logo-icon">👨‍💼</div><span class="logo-text">Admin Panel</span></div>
+    <div class="topbar-right">
+      <div class="user-pill admin-pill">🔐 Admin</div>
+      <button class="icon-btn" onclick="doLogout()">⇄</button>
+    </div>
+  </div>
+  <div class="admin-wrap">
+    <div class="admin-banner">
+      <h1>📊 Dashboard Monitoring</h1>
+      <p>Real-time tracking aktivitas siswa LHO Academy</p>
+    </div>
+    <div class="admin-stats">
+      <div class="stat-box"><div class="stat-num" id="st-total">0</div><div class="stat-lbl">Total Siswa</div></div>
+      <div class="stat-box"><div class="stat-num" id="st-online">0</div><div class="stat-lbl"><span class="online-dot"></span>Online</div></div>
+      <div class="stat-box"><div class="stat-num" id="st-quiz">0</div><div class="stat-lbl">Pernah Kuis</div></div>
+    </div>
+    <h3 style="font-family:'Syne',sans-serif;font-weight:800;margin-bottom:16px;color:var(--text2)">📋 Daftar Siswa</h3>
+    <div class="stu-list" id="stu-list">Memuat data...</div>
+    <button class="danger-btn" onclick="logoutAllStudents()">🚪 Logout Semua Siswa Online</button>
+  </div>
+</div>
+
+<script type="module">
+/* ============================================================
+   FIREBASE WAIT
+   ============================================================ */
+function waitFirebase(){
+  return new Promise(r=>{
+    if(window.firebaseReady&&window.firebaseModules)return r();
+    document.addEventListener('firebaseLoaded',r,{once:true});
+  });
+}
+
+/* ============================================================
+   CONFIG — Firebase project: vilibelajar2
+   ============================================================ */
+const FB_CONFIG={
+  apiKey:"AIzaSyARikTj5dB-1KwtwCOGwTdTJlXcOCQ3yvI",
+  authDomain:"vilibelajar2.firebaseapp.com",
+  projectId:"vilibelajar2",
+  storageBucket:"vilibelajar2.firebasestorage.app",
+  messagingSenderId:"221860146157",
+  appId:"1:221860146157:web:f3e9967e42928d652295e4",
+  measurementId:"G-VQFYRX18KC"
+};
+const GEMINI_KEY="GANTI_DENGAN_API_KEY_GEMINI_ANDA";
+const ADMIN_U="vili23";
+const ADMIN_P="lilicantik";
+
+/* ============================================================
+   DATA MATERI (10 topik)
+   ============================================================ */
+const MATERI=[
+  {
+    num:1,color:"linear-gradient(135deg,#f5c518,#f97316)",
+    title:"Pengertian Teks LHO",icon:"📝",
+    body:`
+      <p>Teks Laporan Hasil Observasi (LHO) adalah teks yang menyajikan informasi tentang suatu objek atau fenomena berdasarkan hasil <strong>pengamatan langsung</strong> secara sistematis dan objektif.</p>
+      <h4>🎯 Tujuan Utama Teks LHO</h4>
+      <ul>
+        <li>Menyampaikan informasi <strong>faktual dan objektif</strong> kepada pembaca</li>
+        <li>Mendokumentasikan hasil pengamatan secara ilmiah dan terstruktur</li>
+        <li>Memberikan pengetahuan mendalam tentang suatu objek/fenomena</li>
+        <li>Menjadi sumber referensi yang dapat dipercaya</li>
+      </ul>
+      <div class="highlight-box">📌 <strong>Contoh objek LHO:</strong> Ekosistem sungai, perpustakaan sekolah, hewan kucing, pasar tradisional, laboratorium IPA, kebun sekolah, dan lain-lain.</div>
+    `
+  },
+  {
+    num:2,color:"linear-gradient(135deg,#10b981,#06b6d4)",
+    title:"Ciri-Ciri Teks LHO",icon:"🔍",
+    body:`
+      <h4>✅ Ciri-Ciri Utama Teks LHO:</h4>
+      <ul>
+        <li><strong>Objektif</strong> – Berdasarkan fakta nyata, bukan asumsi/pendapat</li>
+        <li><strong>Sistematis</strong> – Disusun secara teratur mengikuti struktur baku</li>
+        <li><strong>Faktual</strong> – Setiap pernyataan dapat dibuktikan kebenarannya</li>
+        <li><strong>Universal</strong> – Menggambarkan objek secara umum (bukan kasus spesifik)</li>
+        <li><strong>Informatif</strong> – Memberikan informasi yang lengkap dan akurat</li>
+        <li><strong>Bahasa baku</strong> – Mengikuti kaidah Bahasa Indonesia yang benar</li>
+      </ul>
+      <div class="two-col">
+        <div class="col-box col-yes"><div class="col-head">✅ Ciri LHO yang Benar</div><ul><li>Data yang terukur</li><li>Kalimat objektif</li><li>Fakta dapat dibuktikan</li><li>Bahasa formal & baku</li></ul></div>
+        <div class="col-box col-no"><div class="col-head">❌ Bukan Ciri LHO</div><ul><li>"Menurutku sangat bagus"</li><li>Kata-kata emosional</li><li>Cerita fiksi / imajinasi</li><li>Bahasa gaul/santai</li></ul></div>
+      </div>
+    `
+  },
+  {
+    num:3,color:"linear-gradient(135deg,#7c5cfc,#a78bfa)",
+    title:"Struktur Teks LHO",icon:"🏗️",
+    body:`
+      <h4>📋 3 Struktur Wajib Teks LHO:</h4>
+      <div style="margin:10px 0">
+        <div style="background:rgba(245,197,24,.08);border:1px solid rgba(245,197,24,.2);border-radius:10px;padding:14px;margin-bottom:10px;border-left:3px solid var(--primary)">
+          <strong style="color:var(--primary)">1️⃣ Pernyataan Umum (Klasifikasi)</strong><br>
+          <span style="font-size:.85rem;color:var(--text2)">Pengenalan objek yang diamati secara umum. Berisi definisi, klasifikasi, atau deskripsi awal tentang objek. Ini adalah paragraf pembuka teks LHO.</span>
+        </div>
+        <div style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:10px;padding:14px;margin-bottom:10px;border-left:3px solid var(--green)">
+          <strong style="color:var(--green)">2️⃣ Deskripsi Bagian</strong><br>
+          <span style="font-size:.85rem;color:var(--text2)">Penjelasan rinci tentang ciri-ciri, bagian-bagian, karakteristik, atau aspek-aspek objek yang diamati. Bisa terdiri dari beberapa paragraf.</span>
+        </div>
+        <div style="background:rgba(6,182,212,.08);border:1px solid rgba(6,182,212,.2);border-radius:10px;padding:14px;border-left:3px solid var(--cyan)">
+          <strong style="color:var(--cyan)">3️⃣ Deskripsi Manfaat / Penutup</strong><br>
+          <span style="font-size:.85rem;color:var(--text2)">Penjelasan tentang fungsi, manfaat, kegunaan, atau kesimpulan dari objek yang diamati. Menutup teks dengan informasi yang bermakna.</span>
+        </div>
+      </div>
+    `
+  },
+  {
+    num:4,color:"linear-gradient(135deg,#ef4444,#f97316)",
+    title:"Fakta vs Opini dalam LHO",icon:"⚖️",
+    body:`
+      <h4>🔎 Perbedaan Fakta dan Opini:</h4>
+      <div class="two-col">
+        <div class="col-box col-yes">
+          <div class="col-head">✅ FAKTA</div>
+          <ul>
+            <li>Dapat dibuktikan</li>
+            <li>Bisa diukur/diamati</li>
+            <li>Bersifat objektif</li>
+            <li>Data konkret</li>
+          </ul>
+        </div>
+        <div class="col-box col-no">
+          <div class="col-head">❌ OPINI</div>
+          <ul>
+            <li>Hanya pendapat</li>
+            <li>Bersifat subjektif</li>
+            <li>Pakai kata "menurutku"</li>
+            <li>Tidak pasti kebenarannya</li>
+          </ul>
+        </div>
+      </div>
+      <div class="highlight-box">
+        ✅ <strong>Fakta:</strong> "Perpustakaan memiliki 1.500 koleksi buku."<br>
+        ✅ <strong>Fakta:</strong> "Laboratorium berukuran 8 × 10 meter."<br>
+        ❌ <strong>Opini:</strong> "Menurutku, perpustakaannya sangat indah."<br>
+        ❌ <strong>Opini:</strong> "Sepertinya laboratorium ini terlalu kecil."
+      </div>
+    `
+  },
+  {
+    num:5,color:"linear-gradient(135deg,#f472b6,#7c5cfc)",
+    title:"Kaidah Kebahasaan LHO",icon:"📖",
+    body:`
+      <h4>🔤 Ciri Kebahasaan Teks LHO:</h4>
+      <ul>
+        <li><strong>Kalimat definisi</strong> – Menggunakan kata: adalah, merupakan, ialah, yaitu</li>
+        <li><strong>Kalimat deskripsi</strong> – Menjelaskan ciri, keadaan, atau kondisi objek</li>
+        <li><strong>Verba relasional</strong> – Kata kerja penghubung: mempunyai, memiliki, terdiri dari, terbagi atas</li>
+        <li><strong>Konjungsi penambahan</strong> – dan, serta, juga, selain itu, di samping itu</li>
+        <li><strong>Istilah teknis</strong> – Kosakata khusus sesuai bidang objek</li>
+        <li><strong>Kalimat majemuk</strong> – Kalimat kompleks dengan hubungan logis</li>
+      </ul>
+      <div class="highlight-box">
+        📌 <strong>Contoh kalimat definisi:</strong><br>
+        "Kucing <em>adalah</em> hewan mamalia karnivora dari famili Felidae."<br><br>
+        📌 <strong>Contoh verba relasional:</strong><br>
+        "Perpustakaan <em>memiliki</em> tiga ruangan utama."
+      </div>
+    `
+  },
+  {
+    num:6,color:"linear-gradient(135deg,#06b6d4,#10b981)",
+    title:"Langkah Menulis Teks LHO",icon:"✍️",
+    body:`
+      <h4>📝 5 Langkah Membuat Teks LHO yang Baik:</h4>
+      <div class="step-item"><div class="step-num">1</div><div class="step-content"><strong>Tentukan objek observasi</strong><small>Pilih objek yang konkret, dapat diamati langsung, dan memiliki informasi yang cukup.</small></div></div>
+      <div class="step-item"><div class="step-num">2</div><div class="step-content"><strong>Lakukan pengamatan langsung</strong><small>Amati secara teliti. Catat semua fakta: ukuran, jumlah, warna, fungsi, kondisi, dll.</small></div></div>
+      <div class="step-item"><div class="step-num">3</div><div class="step-content"><strong>Susun kerangka tulisan</strong><small>Buat outline: Pernyataan Umum → Deskripsi Bagian → Deskripsi Manfaat.</small></div></div>
+      <div class="step-item"><div class="step-num">4</div><div class="step-content"><strong>Kembangkan menjadi teks lengkap</strong><small>Tulis berdasarkan fakta, gunakan bahasa baku, kalimat efektif, hindari opini.</small></div></div>
+      <div class="step-item"><div class="step-num">5</div><div class="step-content"><strong>Sunting dan periksa ulang</strong><small>Cek: apakah ada opini? Ejaan sudah benar? Struktur lengkap? Data akurat?</small></div></div>
+    `
+  },
+  {
+    num:7,color:"linear-gradient(135deg,#f5c518,#f472b6)",
+    title:"Contoh Teks LHO Lengkap",icon:"🌟",
+    body:`
+      <h4>📄 Contoh: Laboratorium IPA</h4>
+      <div style="background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:12px;padding:16px;font-size:.85rem;line-height:1.8">
+        <div style="margin-bottom:12px">
+          <span class="info-chip">Pernyataan Umum</span><br>
+          <span style="color:var(--text2)">Laboratorium IPA adalah ruangan khusus yang digunakan untuk kegiatan praktikum ilmu pengetahuan alam. Laboratorium IPA SMP Negeri 1 terletak di gedung B lantai 1 dan mulai beroperasi sejak tahun 2015.</span>
+        </div>
+        <div style="margin-bottom:12px">
+          <span class="info-chip">Deskripsi Bagian</span><br>
+          <span style="color:var(--text2)">Ruangan berukuran 12×15 meter dilengkapi dengan 8 meja praktikum yang dapat menampung 32 siswa. Terdapat 120 jenis bahan kimia yang tersimpan di lemari khusus berkunci. Peralatan laboratorium meliputi 40 unit mikroskop, seperangkat alat titrasi, dan 25 unit tabung reaksi. Di bagian depan terdapat meja demonstrasi dan papan tulis berukuran 3×1,5 meter.</span>
+        </div>
+        <div>
+          <span class="info-chip">Deskripsi Manfaat</span><br>
+          <span style="color:var(--text2)">Laboratorium IPA berfungsi sebagai sarana pendukung kegiatan pembelajaran sains secara praktis. Fasilitas ini memungkinkan siswa melakukan eksperimen langsung sehingga meningkatkan pemahaman konsep ilmiah dan keterampilan ilmiah mereka.</span>
+        </div>
+      </div>
+    `
+  },
+  {
+    num:8,color:"linear-gradient(135deg,#f97316,#ef4444)",
+    title:"LHO vs Teks Deskripsi",icon:"📊",
+    body:`
+      <h4>🆚 Perbandingan LHO dan Teks Deskripsi:</h4>
+      <div style="overflow-x:auto">
+        <table class="compare-table">
+          <tr><th>Aspek</th><th>Teks LHO</th><th>Teks Deskripsi</th></tr>
+          <tr><td><strong>Objek</strong></td><td>Umum / universal (jenis)</td><td>Khusus / spesifik (satu benda)</td></tr>
+          <tr><td><strong>Sifat</strong></td><td>Objektif, ilmiah</td><td>Bisa subjektif</td></tr>
+          <tr><td><strong>Tujuan</strong></td><td>Melaporkan hasil observasi</td><td>Menggambarkan objek</td></tr>
+          <tr><td><strong>Bahasa</strong></td><td>Baku, formal, ilmiah</td><td>Bisa lebih bebas/ekspresif</td></tr>
+          <tr><td><strong>Sumber</strong></td><td>Pengamatan langsung</td><td>Pengalaman/imajinasi</td></tr>
+        </table>
+      </div>
+      <div class="highlight-box" style="margin-top:12px">
+        🔑 <strong>Kunci perbedaan:</strong> LHO membahas "kucing" sebagai jenis hewan. Teks Deskripsi membahas "kucingku si Mochi yang berbulu oranye".
+      </div>
+    `
+  },
+  {
+    num:9,color:"linear-gradient(135deg,#a78bfa,#f472b6)",
+    title:"Jenis-Jenis Objek Observasi",icon:"🔬",
+    body:`
+      <h4>🌍 Berbagai Jenis Objek yang Bisa Diobservasi:</h4>
+      <ul>
+        <li><strong>Lingkungan Sekolah</strong> – Perpustakaan, kantin, lapangan olahraga, laboratorium</li>
+        <li><strong>Alam & Ekosistem</strong> – Sungai, pantai, hutan, sawah, kebun binatang</li>
+        <li><strong>Flora & Fauna</strong> – Tumbuhan tertentu, hewan, serangga, burung</li>
+        <li><strong>Kegiatan Sosial</strong> – Pasar tradisional, puskesmas, pos polisi</li>
+        <li><strong>Benda/Objek Khusus</strong> – Mesin, alat, kendaraan, bangunan bersejarah</li>
+      </ul>
+      <h4>💡 Tips Memilih Objek yang Baik:</h4>
+      <ul>
+        <li>Objek harus <strong>dapat diamati secara langsung</strong></li>
+        <li>Memiliki <strong>ciri-ciri yang jelas</strong> dan dapat dideskripsikan</li>
+        <li>Ada <strong>data dan fakta</strong> yang bisa dicatat</li>
+        <li>Memiliki <strong>manfaat</strong> yang dapat dijelaskan</li>
+      </ul>
+      <div class="highlight-box">🎯 Semakin konkret dan detail pengamatanmu, semakin baik teks LHO yang kamu hasilkan!</div>
+    `
+  },
+  {
+    num:10,color:"linear-gradient(135deg,#06b6d4,#7c5cfc)",
+    title:"Tips & Kesalahan Umum LHO",icon:"💡",
+    body:`
+      <h4>❌ Kesalahan Umum dalam Menulis LHO:</h4>
+      <ul>
+        <li>Mencampurkan <strong>opini dengan fakta</strong> tanpa disadari</li>
+        <li>Tidak memiliki <strong>data yang spesifik</strong> (hanya "banyak", "besar", "jauh")</li>
+        <li>Struktur <strong>tidak lengkap</strong> – melewatkan bagian manfaat</li>
+        <li>Menggunakan <strong>bahasa yang tidak baku</strong></li>
+        <li>Menulis objek yang <strong>terlalu spesifik</strong> (seperti deskripsi)</li>
+      </ul>
+      <h4>✅ Tips Menulis LHO yang Bagus:</h4>
+      <ul>
+        <li>Gunakan <strong>data numerik</strong>: ukuran, jumlah, jarak, berat</li>
+        <li>Hindari kata-kata: <em>mungkin, sepertinya, kira-kira, menurutku</em></li>
+        <li>Sertakan <strong>nama ilmiah/teknis</strong> jika ada</li>
+        <li>Tulis dalam <strong>kalimat aktif</strong> yang jelas dan lugas</li>
+        <li>Selalu <strong>cross-check</strong> apakah setiap kalimat adalah fakta</li>
+      </ul>
+      <div class="highlight-box">⭐ <strong>Rumus LHO sukses:</strong> Fakta + Terstruktur + Bahasa Baku = Teks LHO yang Sempurna!</div>
+    `
+  }
+];
+
+/* ============================================================
+   DATA KUIS (20 soal)
+   ============================================================ */
+const QUIZ_BANK=[
+  {q:"Apa yang dimaksud Teks Laporan Hasil Observasi (LHO)?",opts:["Teks cerita fiksi berdasarkan imajinasi","Teks laporan pengamatan suatu objek secara objektif","Teks yang berisi pendapat dan argumen","Teks dialog antar tokoh"],ans:1,exp:"LHO adalah teks laporan hasil pengamatan langsung terhadap objek tertentu secara objektif dan faktual."},
+  {q:"Manakah CIRI UTAMA teks LHO?",opts:["Subjektif dan penuh pendapat pribadi","Berisi cerita fiktif yang menghibur","Objektif, faktual, berdasarkan pengamatan langsung","Mengandung dialog dan alur cerita"],ans:2,exp:"Ciri utama LHO adalah objektif (tidak memihak) dan berdasarkan fakta dari pengamatan langsung."},
+  {q:"Urutan STRUKTUR teks LHO yang benar adalah...",opts:["Deskripsi Bagian → Pernyataan Umum → Penutup","Penutup → Deskripsi → Pernyataan Umum","Pernyataan Umum → Penutup → Deskripsi Bagian","Pernyataan Umum → Deskripsi Bagian → Deskripsi Manfaat"],ans:3,exp:"Struktur LHO: (1) Pernyataan Umum, (2) Deskripsi Bagian, (3) Deskripsi Manfaat/Penutup."},
+  {q:"Kalimat manakah yang merupakan FAKTA dalam teks LHO?",opts:["Menurutku, perpustakaannya sangat indah.","Perpustakaan memiliki 1.500 koleksi buku.","Sepertinya buku di sini sangat banyak.","Perpustakaan ini adalah yang terbaik."],ans:1,exp:"'Perpustakaan memiliki 1.500 koleksi buku' adalah fakta karena bisa dihitung dan dibuktikan kebenarannya."},
+  {q:"Kalimat manakah yang merupakan OPINI?",opts:["Laboratorium berukuran 8×10 meter.","Terdapat 32 kursi di ruangan itu.","Kelas ini sangat menyenangkan menurutku.","Ada 6 jendela di sisi kanan kelas."],ans:2,exp:"'Kelas ini sangat menyenangkan menurutku' adalah opini karena subjektif, menggunakan 'menurutku', dan tidak bisa dibuktikan."},
+  {q:"Bagian teks LHO yang berisi pengenalan umum objek disebut...",opts:["Deskripsi Bagian","Deskripsi Manfaat","Pernyataan Umum","Penutup"],ans:2,exp:"Pernyataan Umum adalah bagian pertama LHO yang berisi pengenalan/definisi umum tentang objek yang diamati."},
+  {q:"Kata hubung yang PALING SERING digunakan dalam teks LHO adalah...",opts:["Lalu, kemudian, akhirnya","Dan, serta, juga, selain itu","Karena, akibatnya, sehingga","Walaupun, meskipun, namun"],ans:1,exp:"LHO banyak menggunakan konjungsi penambahan (dan, serta, juga, selain itu) untuk menghubungkan informasi tentang objek."},
+  {q:"Contoh KALIMAT DEFINISI yang tepat untuk LHO adalah...",opts:["Kucing ini sangat lucu sekali!","Kucing merupakan hewan mamalia dari famili Felidae.","Sepertinya kucing adalah hewan terpopuler.","Kucingku bernama Mochi warnanya oranye."],ans:1,exp:"Kalimat definisi LHO menggunakan 'adalah/merupakan/ialah' dan bersifat objektif/universal, bukan spesifik pada satu benda."},
+  {q:"Perbedaan utama LHO dengan Teks Deskripsi adalah...",opts:["LHO lebih panjang dan lebih rinci","LHO menggunakan bahasa lebih indah","LHO bersifat umum/universal, Deskripsi bersifat khusus/spesifik","LHO boleh subjektif, Deskripsi tidak"],ans:2,exp:"LHO membahas objek secara umum ('kucing' sebagai jenis hewan), sedangkan Deskripsi membahas satu objek spesifik ('kucingku si Mochi')."},
+  {q:"Langkah PERTAMA menulis teks LHO adalah...",opts:["Menulis kesimpulan akhir","Menentukan objek dan melakukan observasi langsung","Membuat kalimat-kalimat opini","Menyalin referensi dari internet"],ans:1,exp:"Langkah pertama adalah menentukan objek yang akan diamati, lalu melakukan observasi/pengamatan langsung untuk mengumpulkan data/fakta."},
+  {q:"Fungsi bagian 'Deskripsi Manfaat' dalam teks LHO adalah...",opts:["Mengenalkan objek secara umum","Mengungkapkan pendapat penulis","Merinci bagian-bagian objek","Menjelaskan fungsi dan manfaat objek"],ans:3,exp:"Deskripsi Manfaat (Penutup) berfungsi menjelaskan kegunaan, fungsi, atau manfaat objek yang telah diamati."},
+  {q:"Manakah contoh OBJEK yang TEPAT untuk teks LHO?",opts:["Pengalaman liburan yang menyenangkan","Perasaanku saat pertama masuk SMP","Ekosistem sungai di belakang sekolah","Mimpi-mimpiku untuk masa depan"],ans:2,exp:"Ekosistem sungai adalah objek yang tepat karena konkret, bisa diamati langsung, dan bisa dilaporkan secara faktual/objektif."},
+  {q:"Kata yang TIDAK BOLEH ada dalam kalimat definisi LHO adalah...",opts:["adalah","merupakan","menurut saya","ialah"],ans:2,exp:"'Menurut saya' adalah ungkapan subjektif/opini yang tidak sesuai untuk LHO. Kalimat definisi LHO menggunakan: adalah, merupakan, ialah."},
+  {q:"Bahasa yang digunakan dalam teks LHO harus...",opts:["Puitis dengan banyak majas","Santai dan gaul agar mudah dimengerti","Baku, ilmiah, formal, dan mudah dipahami","Penuh emosi agar menarik dibaca"],ans:2,exp:"LHO menggunakan bahasa baku sesuai KBBI, bersifat ilmiah (berbasis fakta), formal, dan mudah dipahami pembaca."},
+  {q:"Teks LHO yang baik TIDAK boleh mengandung...",opts:["Fakta hasil pengamatan langsung","Kalimat definisi ilmiah","Opini/pendapat subjektif penulis","Deskripsi bagian-bagian objek"],ans:2,exp:"Opini/pendapat subjektif tidak boleh ada dalam LHO karena mengurangi objektivitas dan kevalidan laporan observasi."},
+  {q:"Verba relasional yang sering digunakan dalam teks LHO adalah...",opts:["Berlari, melompat, berjalan","Memiliki, terdiri dari, terbagi atas","Menangis, tertawa, marah","Tidur, makan, minum"],ans:1,exp:"Verba relasional (kata kerja penghubung) yang umum dalam LHO: memiliki, mempunyai, terdiri dari, terbagi atas, meliputi."},
+  {q:"Dalam teks LHO, data yang ditulis harus bersifat...",opts:["Imajinatif dan kreatif","Emosional dan menyentuh hati","Spesifik, terukur, dan dapat diverifikasi","Umum dan tidak perlu detail"],ans:2,exp:"Data LHO harus spesifik (misalnya: 32 kursi, bukan 'banyak kursi'), terukur, dan dapat diverifikasi/dibuktikan kebenarannya."},
+  {q:"Kalimat berikut yang SESUAI untuk teks LHO adalah...",opts:["Sepertinya ada sekitar 20 meja di kantin.","Menurutku, kantin sekolah ini tidak bersih.","Kantin sekolah menyediakan 25 jenis menu makanan.","Kira-kira ada banyak siswa yang makan di kantin."],ans:2,exp:"'Kantin sekolah menyediakan 25 jenis menu makanan' adalah fakta yang spesifik dan dapat dihitung/dibuktikan."},
+  {q:"Manakah pernyataan yang BENAR tentang LHO?",opts:["LHO boleh berisi cerita fiksi jika menarik","LHO hanya ditulis oleh ilmuwan professional","LHO bisa ditulis oleh siapa saja asalkan berdasarkan observasi faktual","LHO tidak memerlukan struktur khusus"],ans:2,exp:"LHO dapat ditulis oleh siapa saja (termasuk siswa) asalkan berdasarkan pengamatan langsung yang faktual dan mengikuti struktur yang benar."},
+  {q:"Dalam membuat LHO tentang 'Kebun Sekolah', data MANA yang paling tepat dicatat?",opts:["Kebun ini sangat hijau dan menyejukkan hati.","Kebun memiliki luas 200 m², berisi 15 jenis tanaman, dan dirawat 3 kali seminggu.","Sepertinya kebun ini sudah tua dan perlu direnovasi.","Kebun sekolah terasa seperti hutan kecil yang menyenangkan."],ans:1,exp:"Data faktual yang baik harus spesifik dan terukur: luas (200 m²), jumlah tanaman (15 jenis), frekuensi perawatan (3 kali seminggu)."}
+];
+
+/* ============================================================
+   STATE VARIABLES
+   ============================================================ */
+let currentUser='';
+let userId=null;
+let isAdmin=false;
+let chatHistory=[];
+let db=null;
+let unsub=null;
+let openedMateri=new Set();
+
+// Quiz state
+let quizQs=[];
+let qIdx=0;
+let answered=false;
+let quizScore=0;
+let quizTimer=null;
+let quizTotalSecs=0;
+let quizStartTime=0;
+
+/* ============================================================
+   INIT APP
+   ============================================================ */
+async function initApp(){
+  await waitFirebase();
+  buildBg();
+  const {initializeApp,getFirestore,getAuth,signInAnonymously,onAuthStateChanged}=window.firebaseModules;
+
+  // Initialize Firebase with the new project config
+  let app;
+  try{
+    app=initializeApp(FB_CONFIG,'lho-main');
+  }catch(e){
+    // App already initialized — retrieve it
+    const {getApp}=await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js");
+    try{ app=getApp('lho-main'); }catch(e2){ app=initializeApp(FB_CONFIG,'lho-'+Date.now()); }
+  }
+
+  // Analytics (non-blocking)
+  try{
+    const {getAnalytics}=await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-analytics.js");
+    getAnalytics(app);
+  }catch(e){}
+
+  db=getFirestore(app);
+  const auth=getAuth(app);
+
+  // Sign in anonymously — each browser session gets a unique UID
+  try{
+    await signInAnonymously(auth);
+  }catch(e){ console.warn('Anonymous auth failed:',e.message); }
+
+  // Track UID for accurate per-user identification
+  onAuthStateChanged(auth, u=>{
+    if(u){
+      userId=u.uid;
+      console.log('Firebase Auth UID:', userId);
+    }
+  });
+
+  document.getElementById('inp-name').focus();
+}
+
+/* ============================================================
+   BACKGROUND GENERATOR
+   ============================================================ */
+function buildBg(){
+  const mesh=document.getElementById('bg-mesh');
+  for(let i=0;i<60;i++){
+    const s=document.createElement('div');
+    s.className='star';
+    const sz=Math.random()*2+1;
+    s.style.cssText=`width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;--d:${2+Math.random()*4}s;animation-delay:${Math.random()*4}s`;
+    mesh.appendChild(s);
+  }
+  for(let i=0;i<3;i++){
+    const o=document.createElement('div');
+    o.className='orbit-ring';
+    const sz=300+i*200;
+    o.style.cssText=`width:${sz}px;height:${sz}px;top:${20+i*20}%;left:${10+i*20}%;--d:${20+i*10}s`;
+    mesh.appendChild(o);
+  }
+}
+
+/* ============================================================
+   TOAST
+   ============================================================ */
+function showToast(msg,type='success'){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className='toast show toast-'+type;
+  clearTimeout(t._t);
+  t._t=setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+/* ============================================================
+   ADMIN MODAL
+   ============================================================ */
+window.openAdminModal=function(){
+  document.getElementById('admin-modal').classList.add('show');
+  document.getElementById('admin-user').value='';
+  document.getElementById('admin-pass').value='';
+  document.getElementById('admin-err').classList.remove('show');
+  setTimeout(()=>document.getElementById('admin-user').focus(),100);
+};
+window.closeAdminModal=function(){
+  document.getElementById('admin-modal').classList.remove('show');
+};
+window.doAdminLogin=function(){
+  const u=document.getElementById('admin-user').value.trim();
+  const p=document.getElementById('admin-pass').value.trim();
+  const err=document.getElementById('admin-err');
+  if(u===ADMIN_U&&p===ADMIN_P){
+    isAdmin=true; currentUser='Admin';
+    closeAdminModal(); goTo('admin');
+  } else {
+    err.classList.add('show');
+    document.getElementById('admin-pass').value='';
+  }
+};
+
+/* ============================================================
+   LOGIN / LOGOUT
+   ============================================================ */
+window.doLogin=async function(){
+  const inp=document.getElementById('inp-name');
+  const btn=document.getElementById('btn-login');
+  const txt=document.getElementById('btn-login-text');
+  const spn=document.getElementById('btn-login-spin');
+  const err=document.getElementById('login-err');
+  const name=inp.value.trim();
+  if(!name){ err.classList.add('show'); return; }
+  err.classList.remove('show');
+  btn.disabled=true; txt.style.display='none'; spn.style.display='inline-block';
+  try{
+    if(db&&userId){
+      const {doc,setDoc,serverTimestamp}=window.firebaseModules;
+      // Store student data keyed by their unique anonymous UID
+      await setDoc(doc(db,'students',userId),{
+        name,
+        userId,
+        isOnline:true,
+        lastSeen:serverTimestamp(),
+        loginAt:serverTimestamp(),
+        hasQuiz:false,
+        bestScore:0,
+        bestTime:0
+      },{merge:true});
+    }
+    currentUser=name;
+    chatHistory=[];
+    goTo('home');
+  }catch(e){
+    console.warn('Login save error:',e);
+    currentUser=name;
+    chatHistory=[];
+    goTo('home');
+  }finally{
+    btn.disabled=false; txt.style.display=''; spn.style.display='none';
+  }
+};
+
+window.doLogout=function(){
+  if(!confirm('Yakin mau logout?'))return;
+  if(!isAdmin&&db&&userId) setOffline();
+  isAdmin=false; currentUser='';
+  document.getElementById('inp-name').value='';
+  if(unsub){unsub();unsub=null;}
+  stopTimer();
+  goTo('login');
+};
+
+async function setOffline(){
+  try{
+    const {doc,setDoc,serverTimestamp}=window.firebaseModules;
+    await setDoc(doc(db,'students',userId),{isOnline:false,lastSeen:serverTimestamp()},{merge:true});
+  }catch(e){}
+}
+
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+window.goTo=function(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('pg-'+page).classList.add('active');
+  window.scrollTo(0,0);
+  // Update all user pills
+  document.querySelectorAll('.user-pill:not(.admin-pill)').forEach(el=>el.textContent=`👤 ${currentUser}`);
+  if(page==='home') document.getElementById('hero-name').textContent=currentUser;
+  else if(page==='materi') initMateri();
+  else if(page==='quiz') startQuiz();
+  else if(page==='diskusi'){
+    document.getElementById('chat-user-info').textContent=`💬 ${currentUser} ↔ Guru AI`;
+    renderChat();
+    setTimeout(()=>document.getElementById('chat-inp').focus(),100);
+  }
+  else if(page==='ranking') loadRanking();
+  else if(page==='admin') initAdmin();
+};
+
+/* ============================================================
+   MATERI
+   ============================================================ */
+function initMateri(){
+  const grid=document.getElementById('materi-grid');
+  grid.innerHTML=MATERI.map((m,i)=>`
+    <div class="materi-card" id="mc-${i}">
+      <div class="materi-head" onclick="toggleMateri(${i})">
+        <div class="materi-num" style="background:${m.color}">${m.num}</div>
+        <div class="materi-ttl">${m.icon} ${m.title}</div>
+        <div class="materi-chev">▶</div>
+      </div>
+      <div class="materi-body">${m.body}</div>
+    </div>
+  `).join('');
+  updateMateriProg();
+}
+
+window.toggleMateri=function(i){
+  const card=document.getElementById('mc-'+i);
+  const open=card.classList.contains('open');
+  card.classList.toggle('open',!open);
+  if(!open){ openedMateri.add(i); updateMateriProg(); }
+};
+
+function updateMateriProg(){
+  const c=openedMateri.size, t=MATERI.length;
+  document.getElementById('materi-prog-bar').style.width=(c/t*100)+'%';
+  document.getElementById('materi-prog-text').textContent=
+    c===0?'📚 Klik topik untuk mulai belajar!':
+    c<t?`✅ ${c} dari ${t} topik sudah dibaca — terus semangat! 💪`:
+    `🎉 Semua ${t} topik sudah dibaca! Siap kuis sekarang? 🚀`;
+}
+
+/* ============================================================
+   QUIZ
+   ============================================================ */
+function shuffle(arr){ return [...arr].sort(()=>Math.random()-.5); }
+
+function startQuiz(){
+  stopTimer();
+  quizQs=shuffle(QUIZ_BANK).slice(0,20);
+  qIdx=0; quizScore=0; answered=false; quizTotalSecs=0;
+  quizStartTime=Date.now();
+  document.getElementById('quiz-game').style.display='block';
+  document.getElementById('quiz-result').style.display='none';
+  startTimer();
+  renderQ();
+}
+
+function startTimer(){
+  quizTotalSecs=0;
+  quizTimer=setInterval(()=>{
+    quizTotalSecs++;
+    const m=String(Math.floor(quizTotalSecs/60)).padStart(2,'0');
+    const s=String(quizTotalSecs%60).padStart(2,'0');
+    const el=document.getElementById('q-timer');
+    if(el){
+      el.textContent=`⏱ ${m}:${s}`;
+      el.className='q-timer'+(quizTotalSecs>600?' warning':'');
+    }
+  },1000);
+}
+
+function stopTimer(){
+  if(quizTimer){ clearInterval(quizTimer); quizTimer=null; }
+}
+
+function renderQ(){
+  const q=quizQs[qIdx];
+  const tot=quizQs.length;
+  document.getElementById('q-bar').style.width=(qIdx/tot*100)+'%';
+  document.getElementById('q-label').textContent=`Soal ${qIdx+1} dari ${tot}`;
+  document.getElementById('q-score-disp').textContent=`✅ Skor: ${quizScore}`;
+  const letters=['A','B','C','D'];
+  document.getElementById('quiz-card').innerHTML=`
+    <div class="q-num-tag">SOAL ${qIdx+1} / ${tot}</div>
+    <div class="q-text">${q.q}</div>
+    <div class="q-options">
+      ${q.opts.map((o,i)=>`
+        <div class="q-opt" id="qo-${i}" onclick="pickAns(${i})">
+          <div class="q-opt-letter">${letters[i]}</div>
+          <div>${o}</div>
+        </div>
+      `).join('')}
+    </div>
+    <div class="q-feedback" id="q-fb"></div>
+    <div class="q-nav">
+      <div style="font-size:.8rem;color:var(--text3)">Skor: <strong style="color:var(--primary)">${quizScore}</strong></div>
+      <button class="btn-next" id="btn-next" onclick="nextQ()" disabled>
+        ${qIdx+1<tot?'Lanjut →':'Lihat Hasil 🎉'}
+      </button>
+    </div>
+  `;
+  answered=false;
+}
+
+window.pickAns=function(idx){
+  if(answered)return;
+  answered=true;
+  const q=quizQs[qIdx];
+  const ok=idx===q.ans;
+  if(ok) quizScore++;
+  document.querySelectorAll('.q-opt').forEach((el,i)=>{
+    el.classList.add('locked');
+    if(i===q.ans) el.classList.add('correct');
+  });
+  if(!ok) document.getElementById('qo-'+idx).classList.add('wrong');
+  const fb=document.getElementById('q-fb');
+  fb.classList.add('show',ok?'fb-correct':'fb-wrong');
+  fb.innerHTML=ok
+    ?`✅ <strong>Benar!</strong> ${q.exp}`
+    :`❌ <strong>Salah.</strong> Jawaban: <strong>${['A','B','C','D'][q.ans]}. ${q.opts[q.ans]}</strong><br><small>${q.exp}</small>`;
+  document.getElementById('btn-next').disabled=false;
+};
+
+window.nextQ=function(){
+  qIdx++;
+  if(qIdx>=quizQs.length) finishQuiz();
+  else renderQ();
+};
+
+async function finishQuiz(){
+  stopTimer();
+  document.getElementById('quiz-game').style.display='none';
+  document.getElementById('quiz-result').style.display='block';
+  const tot=quizQs.length;
+  const pct=Math.round(quizScore/tot*100);
+  const secs=quizTotalSecs;
+  const m=String(Math.floor(secs/60)).padStart(2,'0');
+  const s=String(secs%60).padStart(2,'0');
+  const timeStr=`${m}:${s}`;
+  let msg='',emoji='';
+  if(pct>=90){msg='Luar Biasa!';emoji='🥇';}
+  else if(pct>=75){msg='Bagus Sekali!';emoji='🎉';}
+  else if(pct>=60){msg='Cukup Baik!';emoji='👍';}
+  else{msg='Perlu Belajar Lagi!';emoji='💪';}
+  document.getElementById('quiz-result').innerHTML=`
+    <div class="result-wrap">
+      <div class="result-ring" style="--pct:${pct}">
+        <div class="result-ring-inner">
+          <div class="result-score-num">${pct}</div>
+          <div class="result-score-lbl">NILAI</div>
+        </div>
+      </div>
+      <div class="result-title">${emoji} ${msg}</div>
+      <div class="result-detail">Benar <strong>${quizScore}</strong> dari <strong>${tot}</strong> soal</div>
+      <div class="result-time">⏱ Waktu pengerjaan: ${timeStr}</div>
+      <div class="result-actions">
+        <button class="btn-action btn-action-primary" onclick="startQuiz()">🔄 Ulangi Kuis</button>
+        <button class="btn-action btn-action-secondary" onclick="goTo('ranking')">🏆 Lihat Ranking</button>
+        <button class="btn-action btn-action-secondary" onclick="goTo('home')">🏠 Beranda</button>
+      </div>
+    </div>
+  `;
+  await saveScore(pct, secs);
+}
+
+async function saveScore(score, secs){
+  if(!db||!userId) return;
+  try{
+    const {doc,getDoc,setDoc,serverTimestamp}=window.firebaseModules;
+    const ref=doc(db,'students',userId);
+    const snap=await getDoc(ref);
+    const data=snap.exists()?snap.data():{};
+    const shouldUpdate=!data.hasQuiz||(score>data.bestScore)||(score===data.bestScore&&secs<data.bestTime);
+    if(shouldUpdate){
+      await setDoc(ref,{
+        name:currentUser,
+        userId,
+        hasQuiz:true,
+        bestScore:score,
+        bestTime:secs,
+        lastQuizAt:serverTimestamp(),
+        isOnline:true
+      },{merge:true});
+      showToast(`🏆 Skor ${score} berhasil disimpan!`,'success');
+    } else {
+      showToast(`Skor ${score} — skor terbaikmu tetap ${data.bestScore}`,'success');
+    }
+  }catch(e){ console.warn('Save score error:',e); }
+}
+
+/* ============================================================
+   RANKING
+   ============================================================ */
+window.loadRanking=async function(){
+  const podiumWrap=document.getElementById('podium-wrap');
+  const rankList=document.getElementById('rank-list');
+  podiumWrap.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3)">⏳ Memuat ranking...</div>';
+  rankList.innerHTML='';
+  if(!db){
+    podiumWrap.innerHTML='<div class="rank-empty"><div class="rank-empty-icon">⚠️</div><p>Firebase belum terhubung.</p></div>';
+    return;
+  }
+  try{
+    const {collection,getDocs,query}=window.firebaseModules;
+    const q=query(collection(db,'students'));
+    const snap=await getDocs(q);
+    let all=[];
+    snap.forEach(d=>{
+      const dt=d.data();
+      if(dt.hasQuiz&&dt.bestScore!=null){
+        all.push({name:dt.name||'?',score:dt.bestScore,time:dt.bestTime||9999,id:d.id});
+      }
+    });
+    all.sort((a,b)=>b.score-a.score||(a.time-b.time));
+    const top5=all.slice(0,5);
+    renderPodium(top5);
+    renderRankList(top5);
+  }catch(e){
+    podiumWrap.innerHTML=`<div class="rank-empty"><div class="rank-empty-icon">❌</div><p>Gagal memuat: ${e.message}</p></div>`;
+  }
+};
+
+function fmtTime(secs){
+  if(!secs&&secs!==0) return '-';
+  const m=String(Math.floor(secs/60)).padStart(2,'0');
+  const s=String(secs%60).padStart(2,'0');
+  return `${m}:${s}`;
+}
+
+function renderPodium(top5){
+  const wrap=document.getElementById('podium-wrap');
+  if(!top5.length){
+    wrap.innerHTML='<div class="rank-empty"><div class="rank-empty-icon">🏆</div><p>Belum ada peserta yang menyelesaikan kuis.</p></div>';
+    return;
+  }
+  const order=[1,0,2];
+  const posClass=['pos-2','pos-1','pos-3'];
+  const medals=['🥈','🥇','🥉'];
+  const podiumItems=order.map((idx,pIdx)=>{
+    const p=top5[idx];
+    if(!p) return `<div class="podium-item ${posClass[pIdx]}"><div class="podium-name">—</div><div class="podium-block"></div></div>`;
+    return `
+      <div class="podium-item ${posClass[pIdx]}">
+        <div class="podium-name">${escHtml(p.name)}</div>
+        <div class="podium-score-badge">${p.score}</div>
+        <div class="podium-block">
+          <div>
+            <div class="podium-rank">#${idx+1}</div>
+            <span class="podium-medal">${medals[pIdx]}</span>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+  wrap.innerHTML=`<div class="podium">${podiumItems.join('')}</div>`;
+}
+
+function renderRankList(top5){
+  const el=document.getElementById('rank-list');
+  if(!top5.length){
+    el.innerHTML='<div class="rank-empty"><div class="rank-empty-icon">📋</div><p>Belum ada data ranking.</p></div>';
+    return;
+  }
+  const posClass=['rp-1','rp-2','rp-3','rp-other','rp-other'];
+  el.innerHTML=top5.map((p,i)=>`
+    <div class="rank-item ${p.id===userId?'rank-me':''}">
+      <div class="rank-pos ${posClass[i]}">${i+1}</div>
+      <div class="rank-info">
+        <div class="rank-name">${escHtml(p.name)} ${p.id===userId?'<span style="color:var(--accent2);font-size:.75rem">(Kamu)</span>':''}</div>
+        <div class="rank-sub">Peringkat #${i+1} — ${i===0?'🥇 Juara 1':i===1?'🥈 Juara 2':i===2?'🥉 Juara 3':`Top ${i+1}`}</div>
+      </div>
+      <div class="rank-right">
+        <div class="rank-score-big">${p.score}</div>
+        <div class="rank-time">⏱ ${fmtTime(p.time)}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+/* ============================================================
+   AI CHAT
+   ============================================================ */
+window.sendChat=async function(){
+  const inp=document.getElementById('chat-inp');
+  const btn=document.getElementById('btn-send');
+  const txt=inp.value.trim();
+  if(!txt||btn.disabled)return;
+  chatHistory.push({role:'user',content:txt,time:nowTime()});
+  inp.value=''; onChatInput();
+  const tid=Date.now();
+  chatHistory.push({role:'thinking',id:tid});
+  renderChat(); btn.disabled=true;
+  try{
+    const res=await callAI(txt);
+    chatHistory=chatHistory.filter(m=>m.id!==tid);
+    chatHistory.push({role:'ai',content:res,time:nowTime()});
+  }catch(e){
+    chatHistory=chatHistory.filter(m=>m.id!==tid);
+    chatHistory.push({role:'ai',content:'Maaf, ada gangguan koneksi. Coba lagi ya! 😅',time:nowTime()});
+  }finally{ btn.disabled=false; renderChat(); inp.focus(); }
+};
+
+async function callAI(msg){
+  const prompt=`Kamu adalah Guru AI Bahasa Indonesia SMP yang sangat ahli tentang Teks Laporan Hasil Observasi (LHO).
+Nama siswa: ${currentUser}
+Pertanyaan siswa: ${msg}
+Instruksi: Jawab dengan bahasa yang mudah dipahami siswa SMP. Gunakan emoji secukupnya. Fokus pada materi LHO. Maksimal 200 kata. Beri semangat siswa. Jika pertanyaan di luar LHO, arahkan kembali ke topik LHO.`;
+  try{
+    const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_KEY}`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:.7,maxOutputTokens:500}})
+    });
+    if(!r.ok)throw new Error('API '+r.status);
+    const d=await r.json();
+    if(!d.candidates?.[0])throw new Error('No response');
+    return d.candidates[0].content.parts[0].text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
+  }catch(e){ return fallbackAI(msg); }
+}
+
+function fallbackAI(msg){
+  const l=msg.toLowerCase();
+  if(l.includes('struktur'))return`📋 <strong>Struktur Teks LHO:</strong><br><br>1️⃣ <strong>Pernyataan Umum</strong> – Pengenalan & definisi objek<br>2️⃣ <strong>Deskripsi Bagian</strong> – Ciri-ciri & detail objek<br>3️⃣ <strong>Deskripsi Manfaat</strong> – Fungsi & kesimpulan<br><br>Setiap bagian harus <strong>objektif dan faktual</strong>! 📝`;
+  if(l.includes('fakta')||l.includes('opini'))return`⚖️ <strong>Fakta vs Opini:</strong><br><br>✅ <strong>Fakta:</strong> "Kelas memiliki 32 kursi" – dapat dihitung!<br>❌ <strong>Opini:</strong> "Kelas ini sangat nyaman" – subjektif!<br><br>LHO hanya boleh berisi <strong>fakta</strong> yang bisa dibuktikan! 😊`;
+  if(l.includes('lho')||l.includes('laporan')||l.includes('observasi'))return`📝 <strong>Teks LHO</strong> = teks laporan pengamatan yang <strong>objektif</strong> dan <strong>faktual</strong>.<br><br><strong>Ciri-ciri LHO:</strong><br>• Berdasarkan fakta nyata<br>• Bahasa baku dan formal<br>• Tidak ada opini/pendapat<br>• Ada struktur yang jelas<br><br>Mau tanya lebih lanjut? 😊`;
+  return`🤖 Halo <strong>${currentUser}</strong>! Saya Guru AI LHO siap membantu!<br><br>Coba tanyakan:<br>• "Apa itu LHO?"<br>• "Jelaskan struktur LHO"<br>• "Contoh fakta dan opini"<br>• "Cara menulis LHO yang benar"`;
+}
+
+function renderChat(){
+  const win=document.getElementById('chat-window');
+  if(!chatHistory.length){
+    win.innerHTML=`<div class="chat-empty"><div><div class="chat-empty-icon">🤖</div><p>Guru AI siap membantu belajar LHO!</p><small>Ketik pertanyaan di bawah 👇</small></div></div>`;
+    return;
+  }
+  win.innerHTML=chatHistory.map(m=>{
+    if(m.role==='thinking')return`<div class="bubble bubble-thinking"><span class="bubble-meta">🤖 Guru AI</span>Sedang mengetik...</div>`;
+    const isUser=m.role==='user';
+    const cls=isUser?'bubble-user':'bubble-ai';
+    const lbl=isUser?`👤 ${escHtml(currentUser)}`:'🤖 Guru AI';
+    const body=isUser?escHtml(m.content).replace(/\n/g,'<br>'):m.content.replace(/\n/g,'<br>');
+    return`<div class="bubble ${cls}"><span class="bubble-meta">${lbl} · ${m.time}</span>${body}</div>`;
+  }).join('');
+  win.scrollTop=win.scrollHeight;
+}
+
+window.onChatInput=function(){
+  const v=document.getElementById('chat-inp').value.length;
+  document.getElementById('chat-count').textContent=`${v} / 800`;
+};
+window.onChatKey=function(e){
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat();}
+};
+
+/* ============================================================
+   ADMIN
+   ============================================================ */
+function initAdmin(){
+  if(!db){ document.getElementById('stu-list').innerHTML='<p style="color:var(--text3)">Firebase belum terhubung.</p>'; return; }
+  const {collection,query,orderBy,onSnapshot}=window.firebaseModules;
+  if(unsub){unsub();unsub=null;}
+  const q=query(collection(db,'students'),orderBy('lastSeen','desc'));
+  unsub=onSnapshot(q,snap=>{
+    let total=0,online=0,quizDone=0;
+    const arr=[];
+    snap.forEach(d=>{
+      const dt=d.data();
+      arr.push({id:d.id,...dt});
+      total++;
+      if(dt.isOnline) online++;
+      if(dt.hasQuiz) quizDone++;
+    });
+    document.getElementById('st-total').textContent=total;
+    document.getElementById('st-online').textContent=online;
+    document.getElementById('st-quiz').textContent=quizDone;
+    const el=document.getElementById('stu-list');
+    if(!arr.length){el.innerHTML='<p style="color:var(--text3);text-align:center;padding:40px">Belum ada siswa.</p>';return;}
+    el.innerHTML=arr.map(s=>`
+      <div class="stu-item">
+        <div class="stu-avatar">${escHtml((s.name||'?')[0].toUpperCase())}</div>
+        <div class="stu-info">
+          <div class="stu-name">${escHtml(s.name||'-')}</div>
+          <div class="stu-meta">UID: ${(s.userId||s.id||'').slice(0,12)}... ${s.bestScore!=null&&s.hasQuiz?`· Skor: ${s.bestScore}`:''} ${s.bestTime&&s.hasQuiz?`· ⏱ ${fmtTime(s.bestTime)}`:''}</div>
+          <span class="stu-badge ${s.isOnline?'badge-online':'badge-offline'}">${s.isOnline?'🟢 Online':'⚫ Offline'}</span>
+        </div>
+      </div>
+    `).join('');
+  },err=>{ document.getElementById('stu-list').innerHTML=`<p style="color:var(--red)">Error: ${err.message}</p>`; });
+}
+
+window.logoutAllStudents=async function(){
+  if(!confirm('Logout semua siswa online?'))return;
+  if(!db){alert('Firebase belum terhubung!');return;}
+  try{
+    const {collection,getDocs,setDoc,serverTimestamp}=window.firebaseModules;
+    const snap=await getDocs(collection(db,'students'));
+    const p=[];
+    snap.forEach(d=>{ if(d.data().isOnline) p.push(setDoc(d.ref,{isOnline:false,lastSeen:serverTimestamp()},{merge:true})); });
+    await Promise.all(p);
+    showToast('✅ Semua siswa berhasil di-logout!');
+  }catch(e){ showToast('Gagal: '+e.message,'error'); }
+};
+
+/* ============================================================
+   UTILS
+   ============================================================ */
+function escHtml(str){
+  const d=document.createElement('div');
+  d.textContent=str||'';
+  return d.innerHTML;
+}
+function nowTime(){
+  return new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+}
+
+/* ============================================================
+   BEFORE UNLOAD — mark student offline when tab closes
+   ============================================================ */
+window.addEventListener('beforeunload',()=>{
+  if(!isAdmin&&db&&userId) setOffline();
+});
+
+/* ============================================================
+   START
+   ============================================================ */
+initApp();
+</script>
+</body>
+</html>
